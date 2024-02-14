@@ -1,6 +1,15 @@
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:recipes/navigators/navigators.dart';
+import 'package:recipes/presentation/login/manger/login_cubit.dart';
+import 'package:recipes/presentation/navigation_bar/page/main_screen.dart';
+import 'package:recipes/presentation/register/page/register_screen.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
-import 'colors/recipe_colors.dart';
+import '../../../colors/recipe_colors.dart';
+import '../../forget_password/page/forget_password.dart';
+import '../../onBoarding.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,15 +25,20 @@ class _LoginScreenState extends State<LoginScreen> {
   var passwordController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
   final formKey =GlobalKey<FormState>();
+  final cubit =LoginCubit();
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: Stack(
-          children: [
-            Image.asset('assets/image/potato.jpeg',
+    return BlocProvider(
+      create: (context) => cubit,
+      child: BlocListener<LoginCubit, LoginState>(
+        listener: (context, state) => onStateChange(state),
+        child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SingleChildScrollView(
+          child: Stack(
+            children: [
+            Image.asset('assets/images/potato.jpeg',
               fit: BoxFit.fill,
               width: double.infinity,
             ),
@@ -93,27 +107,23 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           SizedBox(height: 2.h),
-                          Align(
-                            alignment: Alignment.center,
-                            child: TextButton(
-                              style: TextButton.styleFrom(
-                                textStyle:  TextStyle(fontSize: 15.sp),
-                              ),
-                              onPressed: ()  {},
-                              child: Align(
-                                alignment: Alignment.center,
-                                child: Text('Forget Password?',
-                                  style: TextStyle(fontWeight: FontWeight.bold,color: RecipesColor.secondColor),),
-                              ),
+                          TextButton(
+                            style: TextButton.styleFrom(
+                              textStyle:  TextStyle(fontSize: 17.sp),
+                            ),
+                            onPressed: ()  => push(context, const ForgetPassword()),
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: Text('Forget Password?',
+                                style: TextStyle(fontWeight: FontWeight.bold,color: RecipesColor.secondColor),),
                             ),
                           ),
                           SizedBox(height: 2.h),
                           SizedBox(
                             width: double.infinity,
                             height:6.h,
-
                             child: ElevatedButton(
-                              onPressed: () {},
+                              onPressed: () =>login(),
                               style: ElevatedButton.styleFrom(
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(15.sp),
@@ -131,7 +141,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   style: TextButton.styleFrom(
                                     textStyle:  TextStyle(fontSize: 15.sp),
                                   ),
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    push(context,const RegisterScreen());
+                                  },
                                   child: Text('Create new account',
                                     style: TextStyle(fontWeight: FontWeight.bold,color: RecipesColor.firstColor),),
                                 )
@@ -147,11 +159,65 @@ class _LoginScreenState extends State<LoginScreen> {
           ],
         ),
       ),
+    ),
+),
+);
+  }
+
+void onLoginSuccess(){
+    pushReplacement(context, MainScreen());
+}
+void login(){
+  if (!formKey.currentState!.validate()){
+    return;
+  }
+  String email =emailController.text;
+  String password =passwordController.text;
+  cubit.login(email: email, password: password);
+}
+void awesomeDialog(String message){
+  AwesomeDialog(
+      context: context,
+      dialogType: DialogType.error,
+      animType: AnimType.rightSlide,
+     // title: message,
+      desc: message,
+      //btnCancelOnPress: () {},
+      btnOkOnPress: () => Navigator.pop(context),
+  ).show();
+}
+void displayToast(String message){
+    Fluttertoast.cancel();
+    Fluttertoast.showToast(
+        msg: message,
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.CENTER,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0
     );
   }
+
+  onStateChange( LoginState state) {
+    if(state is LoginLoadingState){
+      showDialog(context: context, builder: (context) {
+        return const Center(child: CircularProgressIndicator(
+          color: Colors.orange,
+          backgroundColor: Colors.grey,
+        ));
+      },);
+    }
+    else if(state is LoginSuccessState){
+      onLoginSuccess();
+    }
+    else if(state is LoginFailureState){
+      awesomeDialog(state.errorMessage);
+     //displayToast( state.errorMessage);
+    }
+  }
+
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
     emailController.dispose();
     passwordController.dispose();

@@ -1,12 +1,26 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:recipes/presentation/timer_steps/page/timer_steps.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-
-import 'Model/category_product.dart';
-import 'colors/recipe_colors.dart';
+import '../../../Model/myRecipe.dart';
+import '../../../colors/recipe_colors.dart';
+import '../../../navigators/navigators.dart';
 
 class RecipeDetails extends StatefulWidget {
-  const RecipeDetails({super.key});
+  const RecipeDetails({super.key, required this.vUrl, required this.rate, required this.level, required this.name, required this.chefName, required this.followers, required this.description, required this.time, required this.cal});
+final String vUrl;
+  final String rate;
+  final String level;
+  final String name;
+  final String chefName;
+  final String followers;
+  final String description;
+  final String time;
+  final String cal;
+
+
 
   @override
   State<RecipeDetails> createState() => _RecipeDetailsState();
@@ -14,26 +28,25 @@ class RecipeDetails extends StatefulWidget {
 
 class _RecipeDetailsState extends State<RecipeDetails> {
   late YoutubePlayerController _controller;
-  List<CategoryProduct> categoryProduct=[
-    CategoryProduct('Cheese Pizza', '', '', '25000 EGP', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTd3OdttwDOTezV_h-qSf0SH3HeIaScZGp5og&usqp=CAU',true),
-    CategoryProduct('Burger', '45 %', '10230 EGP', '5599 EGP','https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTjr_mHTGKmVilBiLWCHtxnpSG0GYEARaMaJA&usqp=CAU',false),
-    CategoryProduct('Pasta', '8 %', '12499 EGP', '11499', 'https://i5.walmartimages.com/seo/SAMSUNG-65-Class-Curved-4K-2160P-Ultra-HD-Smart-LED-TV-UN65MU6500FXZA_f18ae77b-ccbb-4d31-9b90-577bd770e1ed_3.dfaaa48e38496b4c3b9ef8116cd36866.jpeg',false),
-    CategoryProduct('Apple ', '', '', '44500 EGP', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRHNQEZDCM-3RJ0tjMlZH0oZYCs5O8pqO4muw&usqp=CAU',true),
-    CategoryProduct('salad', '6 %', '35000 EGP', '32860 EGP', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRsYLJB04kLq-pEfMVY4gYiXhr2BiP36plJmA&usqp=CAU',false),
-    CategoryProduct('meat', '', '', '530', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSeboeQ8ddboCpljMoy2R2jjg_O4fYpScu3rA&usqp=CAU',true),
-  ];
+  late String videoId;
+  bool favourite =false;
+List<MyRecipe> recipe=[];
+
   @override
   void initState() {
     super.initState();
+
     _controller = YoutubePlayerController(
-      initialVideoId: '-BYWbosiYlw',
+      initialVideoId: "${widget.vUrl}",
+      //${recipes["youtube url"]}
       flags: const YoutubePlayerFlags(
         autoPlay: true,
         mute: true,
         loop: true,
         enableCaption: true,
       ),
-    );}
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,7 +62,7 @@ class _RecipeDetailsState extends State<RecipeDetails> {
                       progressColors:ProgressBarColors(
                       playedColor: RecipesColor.firstColor,
                       handleColor: RecipesColor.firstColor,
-                  ),
+          ),
                   onReady: () {
                   _controller.addListener(() {});
                   },
@@ -61,7 +74,9 @@ class _RecipeDetailsState extends State<RecipeDetails> {
                     padding:  EdgeInsets.all(20.sp),
                     width: double.infinity,
                     decoration:  BoxDecoration(
-                    color: Colors.grey[100],
+                        color: Theme.of(context).brightness == Brightness.light
+                            ?Colors.white
+                            :Colors.grey[900],
                     borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(25.sp),
                     topRight: Radius.circular(25.sp),
@@ -70,15 +85,20 @@ class _RecipeDetailsState extends State<RecipeDetails> {
                     child:Column(
                      crossAxisAlignment: CrossAxisAlignment.start,
                      children: [
+                       Align(
+                         alignment:Alignment.center,
+                           child:  Text('______',
+                           style: TextStyle(fontWeight:FontWeight.bold,fontSize: 20,color: Colors.grey[400]),),
+                       ),
                         Row(
                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                          children: [
-                           const Text('Recipe Name',style: TextStyle(fontSize: 30,fontWeight: FontWeight.bold),),
+                            Text("${widget.name}",style: TextStyle(fontSize: 30,fontWeight: FontWeight.bold),),
                            Row(
                              children: [
                                Icon(Icons.star,color: RecipesColor.firstColor,size: 20.sp,),
                                const SizedBox(width: 5,),
-                               Text ('4.5',style: TextStyle(color: Colors.black,fontSize: 17.sp,fontWeight: FontWeight.bold),),
+                               Text ("${widget.rate}",style: TextStyle(fontSize: 17.sp,fontWeight: FontWeight.bold),),
                                Container(
                                  margin: const EdgeInsets.all(10),
                                  decoration: BoxDecoration(
@@ -86,9 +106,13 @@ class _RecipeDetailsState extends State<RecipeDetails> {
                                    borderRadius: BorderRadius.circular(15),
                                  ),
                                  child: IconButton(
-                                     onPressed: () {},
-                                     icon: const Icon(
-                                       Icons.favorite_border, color: Colors.white,)),
+                                   onPressed: (){
+                                     setState(() {
+                                       favourite=!favourite;
+                                     });
+                                   },
+                                   icon: Icon(favourite ? Icons.favorite_border_outlined:Icons.favorite
+                                       , color: Colors.white,)),
                                ),
                              ],
                            ),
@@ -96,18 +120,16 @@ class _RecipeDetailsState extends State<RecipeDetails> {
                        ),
                         Row(
                          children: [
-                           const CircleAvatar(
-                             radius: 30,
-                           ),
+                           Image.asset("assets/images/chef.png",width: 20.w,height: 10.h,),
                            const SizedBox(width: 10,),
-                           const Expanded(
+                            Expanded(
                              child: Column(
                                crossAxisAlignment: CrossAxisAlignment.start,
                                children: [
-                                 Text('Heba Magdy',style: TextStyle(color: Colors.black),),
+                                 Text("${widget.chefName}",style: TextStyle(fontSize: 20),),
                                  Row(
                                    children: [
-                                     Text('4.4M',style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold),),
+                                     Text("${widget.followers}",style: TextStyle(fontWeight: FontWeight.bold),),
                                      Text('Followers',style: TextStyle(color: Colors.grey),),
                                    ],
                                  ),
@@ -128,25 +150,28 @@ class _RecipeDetailsState extends State<RecipeDetails> {
                         Row(
                          children: [
                            Icon(Icons.access_time_rounded,color: RecipesColor.firstColor,),
-                           const Text('10 mins',style: TextStyle(color: Colors.grey),),
+                            Text("${widget.time}",style: TextStyle(color: Colors.grey),),
                            const SizedBox(width: 10,),
 
                            Icon(Icons.stacked_bar_chart,color: RecipesColor.firstColor,),
-                           const Text('Medium',style: TextStyle(color: Colors.grey),),
+                            Text("${widget.level}",style: TextStyle(color: Colors.grey),),
                            const SizedBox(width: 10,),
 
                            Icon(Icons.local_fire_department_outlined,color: RecipesColor.firstColor,),
-                           const Text('512 cal',style: TextStyle(color: Colors.grey),),
+                            Text("${widget.cal}",style: TextStyle(color: Colors.grey),),
                            const SizedBox(width: 10,),
+                           const Spacer(),
+                           Image.asset("assets/images/bookmark.png",width: 20.w,height: 8.h,),
                          ],
                        ),
                        const SizedBox(height: 10,),
                        const Text('Description',style: TextStyle(fontSize: 25,fontWeight: FontWeight.bold),),
                        const SizedBox(height: 10,),
-                       const Text('Hearty Chicken sausage. fresh, juicy shrimp and asparagus make for a perfect sheet pan dinner.  ',style: TextStyle(color: Colors.grey),),
+                        Text("${widget.description}",style: TextStyle(color: Colors.grey),),
                        const SizedBox(height: 10,),
                        const Text('Ingredients',style: TextStyle(fontSize: 25,fontWeight: FontWeight.bold),),
                       ingredients(),
+                       SizedBox(height: 2.h,),
                        getStarted(),
                      ],
                    ),
@@ -162,14 +187,16 @@ class _RecipeDetailsState extends State<RecipeDetails> {
       height: 60.h,
       child: ListView.builder(
           physics: const NeverScrollableScrollPhysics(),
-          itemCount:  categoryProduct.length,
+          itemCount:  recipe.length,
           scrollDirection: Axis.vertical,
           itemBuilder: (context, index) {
             return Container(
               padding: const EdgeInsets.all(10),
               margin:  EdgeInsets.all( 10.sp),
             decoration:  BoxDecoration(
-            color: Colors.white,
+              color: Theme.of(context).brightness == Brightness.light
+                  ?Colors.grey[100]
+                  :Colors.grey[800],
               borderRadius: BorderRadius.circular(15),
             ),
               child: Column(
@@ -180,13 +207,13 @@ class _RecipeDetailsState extends State<RecipeDetails> {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(15.sp),
                         child: Image.network(
-                          categoryProduct[index].image,
+                          recipe[index].imageUrl,
                           fit: BoxFit.cover,
                           height: 50,
                           width: 50,
                         ), ),
                       const SizedBox(width: 10,),
-                      Expanded(child: Text(categoryProduct[index].name,style: const TextStyle(fontWeight: FontWeight.bold,fontSize: 20),)),
+                      Expanded(child: Text(recipe[index].name,style: const TextStyle(fontWeight: FontWeight.bold,fontSize: 20),)),
                       const Text('160 g',style: TextStyle(fontWeight: FontWeight.bold),)
                     ],
                   ),
@@ -203,12 +230,16 @@ class _RecipeDetailsState extends State<RecipeDetails> {
     return Align(
       alignment: Alignment.center,
       child: InkWell(
-        onTap: (){},
+        onTap: (){
+          push(context, const TimerSteps());
+        },
         child: Container(
           height: 50,
           width: 250,
           decoration:  BoxDecoration(
-              color: Colors.white70,
+            color: Theme.of(context).brightness == Brightness.light
+                ?Colors.grey[100]
+                :Colors.grey[800],
               borderRadius: BorderRadius.circular(30),
             ),
 

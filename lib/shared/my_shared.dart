@@ -3,60 +3,35 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'my_shared_keys.dart';
 
-class MyShared {
-  static SharedPreferences? _preferences;
 
-  static Future<void> init() async {
-    _preferences = await SharedPreferences.getInstance();
+class PreferenceUtils {
+  static Future<SharedPreferences> get _instance async {
+    return _prefsInstance ??= await SharedPreferences.getInstance();
   }
 
-  static void putBoolean({
-    required MySharedKeys key,
-    required bool value,
-  }) async {
-    await _preferences?.setBool(key.name, value);
+  static SharedPreferences? _prefsInstance;
+
+  // call this method from iniState() function of mainApp().
+  static Future<SharedPreferences> init() async {
+    _prefsInstance = await _instance;
+    return _prefsInstance!;
   }
 
-  static bool getBoolean({required MySharedKeys key}) {
-    return _preferences?.getBool(key.name) ?? false;
+  static String getString(PrefKeys key, [String defValue = '']) {
+    return _prefsInstance?.getString(key.name) ?? defValue;
   }
 
-  static Future<bool> putString({
-    required MySharedKeys key,
-    required String? value,
-  }) async {
-    return await _preferences?.setString(key.name, value ?? "") ?? false;
+  static Future<bool> setString(PrefKeys key, String value) async {
+    var prefs = await _instance;
+    return prefs.setString(key.name, value);
   }
 
-  static String getString({required MySharedKeys key}) {
-    return _preferences?.getString(key.name) ?? "";
+  static bool getBool(PrefKeys key, [bool defValue = false]) {
+    return _prefsInstance?.getBool(key.name) ?? defValue;
   }
 
-  static String getCurrentLanguage() {
-    return _preferences?.getString(MySharedKeys.currentLanguage.name) ?? "en";
-  }
-
-  static bool isLoggedIn() {
-    return (_preferences?.getString(MySharedKeys.apiToken.name) ?? "")
-        .isNotEmpty;
-  }
-
-  static Future<bool> putInt({
-    required MySharedKeys key,
-    required int? value,
-  }) async {
-    return await _preferences?.setInt(key.name, value ?? 0) ?? false;
-  }
-
-  static int getInt({required MySharedKeys key}) {
-    return _preferences?.getInt(key.name) ?? 0;
-  }
-
-  static Future<bool> clear() async => await _preferences!.clear();
-
-  static bool isEnglish() => getCurrentLanguage() == "en";
-
-  static bool isFirstOpen() {
-    return _preferences?.getBool(MySharedKeys.firstOpen.name) ?? true;
+  static Future<bool> setBool(PrefKeys key, bool value) async {
+    var prefs = await _instance;
+    return prefs.setBool(key.name, value);
   }
 }
