@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:recipes/navigators/navigators.dart';
 import 'package:recipes/presentation/payment/page/payment.dart';
-import 'package:recipes/presentation/watched_recipes/page/watched_recipes.dart';
 import 'package:recipes/presentation/weekly_list/page/weekly_list.dart';
-import 'package:recipes/presentation/wishlist/page/wishlist.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import '../../../colors/recipe_colors.dart';
+import '../../../shared/my_shared.dart';
+import '../../../shared/my_shared_keys.dart';
 import '../../my_fridge/page/my_fridge.dart';
 import '../../side menu/page/side_menu.dart';
 
@@ -61,7 +61,7 @@ class _MyProfileState extends State<MyProfile> {
                     ),
                   ],
                 ),
-                const Text('Evie-Mai Reese',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 30),),
+                 Text("${PreferenceUtils.getString(PrefKeys.name)}",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 30),),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

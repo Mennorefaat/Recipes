@@ -4,5 +4,6 @@ enum PrefKeys {
   newsCountry,
   language,
   apiToken,
+  image,
   darkTheme, email, name, phone,
 }

@@ -47,7 +47,7 @@ FirebaseFirestore firestore = FirebaseFirestore.instance;
 firestore.collection("users").doc(auth.currentUser!.uid.toString()).get().then((value) {
   PreferenceUtils.setString(PrefKeys.email, value.get("email"));
   PreferenceUtils.setString(PrefKeys.name, value.get("name"));
-  PreferenceUtils.setString(PrefKeys.email, value.get("image"));
+  PreferenceUtils.setString(PrefKeys.image, value.get("image"));
   PreferenceUtils.setString(PrefKeys.phone, value.get("phone"));
 
 });
